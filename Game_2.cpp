@@ -1,4 +1,7 @@
 ﻿#include<iostream>
+#include<fstream>
+#include<thread>
+#include<chrono>
 
 using namespace std;
 //Массив для поля
@@ -7,6 +10,8 @@ int field[100][100]; // -1 это мина, от 0 до 8 - открытая к�
 int field_p[100][100]; // -1 это флаг, -2 это закрытая клетка и 0-8 это открытая с цифрами.
 // Длина, ширина и количество мин.
 const int N = 10, M = 10, K = 10; 
+
+bool is_bot = false;
 //Функция для вывода поля в консоль.
 void print_field() {
 	system("cls");
@@ -72,6 +77,29 @@ void end_game(bool is_win = false) {
 	cout << "Vi " <<(is_win ? "viigraly" : "proigraly") << ". \n Chtoby nachaty novuyu igru, vvedite lubuyu stroku.";
 	string s;
 	cin >> s;
+	is_bot = false;
+}
+
+
+
+void wait(int millesec) {
+	this_thread::sleep_for(chrono::milliseconds(millesec));
+}
+
+void save_field() {
+	ofstream fout("field.txt", ios_base::trunc);
+	if (!fout.is_open()) {
+		cout << "No file field.txt";
+		exit(0);
+	}
+	fout << N << ' ' << M << ' ' << K << '\n';
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			fout << field_p[i][j] << ' ';
+		}
+		fout << '\n';
+	}
+	fout.close();
 }
 
 int main() {
@@ -116,10 +144,31 @@ int main() {
 			cout << "Enter command: "; // Виды команд: \o х и у - открыть клетку, \f х у - это команда для того, чтобы поставить/убрать флаг.
 			// \n - новая игра, \q - завершение программы.
 			string comand;
-			cin >> comand;
+			ifstream fin;
+			if (is_bot) {
+				save_field();
+				system("Bot.exe");
+				fin.open("comand.txt");
+				if (!fin.is_open()) {
+					cout << "No file comand.txt";
+					return 0;
+				}
+				fin >> comand;
+				cout << comand;
+			} 
+			else {
+				cin >> comand;
+			}
 			if (comand == "\\o") { // Ввод координат для открытия поля.
 				int x, y;
-				cin >> x >> y;
+				if (is_bot) {
+					fin >> x >> y;
+					cout << x << ' ' << y;
+					wait(3000);
+				}
+				else {
+					cin >> x >> y;
+				}
 				--x; --y;
 				if (x < 0 || x >= N || y < 0 || y >= M || field_p[x][y] >= 0) continue;
 				if (!open_cell(x, y)) {
@@ -133,7 +182,14 @@ int main() {
 			}
 			else if (comand == "\\f") { // Операции с флагом
 				int x, y;
-				cin >> x >> y;
+				if (is_bot) {
+					fin >> x >> y;
+					cout << x << ' ' << y;
+					wait(3000);
+				}
+				else {
+					cin >> x >> y;
+				}
 				--x; --y;
 				if (x < 0 || x >= N || y < 0 || y >= M || field_p[x][y] >= 0) continue;
 				if (field_p[x][y] == -1) field_p[x][y] = -2;
@@ -141,6 +197,10 @@ int main() {
 			}
 			// Новая игра.
 			else if (comand == "\\n") {
+				break;
+			}
+			else if (comand == "\\b") {
+				is_bot = true;
 				break;
 			}
 			// Прервать игру.
