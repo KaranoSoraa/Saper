@@ -150,11 +150,19 @@ int main() {
 				system("Bot.exe");
 				fin.open("comand.txt");
 				if (!fin.is_open()) {
-					cout << "No file comand.txt";
-					return 0;
+					int tries = 2;
+					int zaderzh = 1000;
+					while (!fin.is_open() && tries--) {
+						cout << "Retry to find comand.txt file: " << tries << '\n';
+						wait(zaderzh);
+						fin.open("comand.txt");
+					}
+					if (tries == -1) {
+						throw "No file comand.txt";
+					}
 				}
 				fin >> comand;
-				cout << comand;
+				cout << comand << ' ';
 			} 
 			else {
 				cin >> comand;
@@ -211,12 +219,3 @@ int main() {
 	}
 }
 
-/* Условия появления мин
-for (int i = 0; i < N; i++) {
-		for (int j = 0; j < M; j++) {
-			if (field[i][j] == -1) cout << '*' << ' ';
-			else cout << field[i][j] << ' ';
-		}
-		cout << endl;
-	}
-*/
